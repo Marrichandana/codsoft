@@ -1,0 +1,54 @@
+import pandas as pd
+import numpy as np
+import re
+import string
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+
+# Sample dataset
+data = {
+    'plot': [
+        "A young wizard joins a magical school and fights a dark lord.",
+        "A group of friends go on a quest to destroy a powerful ring.",
+        "A detective investigates a mysterious murder in a futuristic city.",
+        "A superhero saves the world from an alien invasion.",
+        "A couple falls in love despite their families' opposition."
+    ],
+    'genre': ["Fantasy", "Fantasy", "Sci-Fi", "Action", "Romance"]
+}
+
+df = pd.DataFrame(data)
+
+# Extract features and labels
+X = df['plot']
+y = df['genre']
+
+# Text preprocessing function
+def preprocess_text(text):
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(f"[{string.punctuation}]", "", text)  # Remove punctuation
+    text = re.sub("\\d+", "", text)  # Remove numbers
+    return text
+
+X = X.apply(preprocess_text)
+
+# Convert text data into TF-IDF features
+vectorizer = TfidfVectorizer(stop_words='english', max_features=5000)
+X_tfidf = vectorizer.fit_transform(X)
+
+# Split data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X_tfidf, y, test_size=0.2, random_state=42)
+
+# Train classifier
+classifier = LogisticRegression()
+classifier.fit(X_train, y_train)
+
+# Make predictions
+y_pred = classifier.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+print(classification_report(y_test, y_pred))
