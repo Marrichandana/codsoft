@@ -2,9 +2,8 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report
 
 # Generate a sample dataset
@@ -12,17 +11,18 @@ np.random.seed(42)
 n_samples = 1000
 
 data = {
-    'amount': np.random.uniform(1, 5000, n_samples),
-    'transactions_per_day': np.random.randint(1, 20, n_samples),
-    'account_age_days': np.random.randint(30, 3650, n_samples),
-    'is_fraud': np.random.choice([0, 1], size=n_samples, p=[0.95, 0.05])  # 5% fraud cases
+    'monthly_usage_hours': np.random.uniform(0, 200, n_samples),
+    'num_logins_per_month': np.random.randint(1, 50, n_samples),
+    'subscription_length_months': np.random.randint(1, 60, n_samples),
+    'customer_age': np.random.randint(18, 80, n_samples),
+    'is_churn': np.random.choice([0, 1], size=n_samples, p=[0.85, 0.15])  # 15% churn rate
 }
 
 df = pd.DataFrame(data)
 
 # Extract features and labels
-X = df.drop(columns=['is_fraud'])
-y = df['is_fraud']
+X = df.drop(columns=['is_churn'])
+y = df['is_churn']
 
 # Standardize numerical features
 scaler = StandardScaler()
@@ -31,18 +31,14 @@ X_scaled = scaler.fit_transform(X)
 # Split data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# Train a model (experiment with different classifiers)
-models = {
-    'Logistic Regression': LogisticRegression(),
-    'Decision Tree': DecisionTreeClassifier(),
-    'Random Forest': RandomForestClassifier()
-}
+# Train a model (choose one: Logistic Regression, Random Forest, or Gradient Boosting)
+model = RandomForestClassifier()  # Change to LogisticRegression() or GradientBoostingClassifier() if needed
+model.fit(X_train, y_train)
 
-for name, model in models.items():
-    print(f"Training {name}...")
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f'{name} Accuracy: {accuracy:.2f}')
-    print(classification_report(y_test, y_pred))
-    print("-" * 50)
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+print(classification_report(y_test, y_pred))
